@@ -65,11 +65,9 @@ implementation
       hist_index := new_index;
       if hist_index < 0 then hist_index := 0;
       if hist_index > history.count then  hist_index := history.count;
-      if hist_index in [ 0 .. history.count - 1 ] then begin
-	buf := history[ hist_index ];
-	len := length( buf );
-      end
-      else begin buf := ''; len := 0 end;
+      if hist_index in [ 0 .. history.count - 1 ] then buf := history[ hist_index ]
+      else buf := '';
+      len := length( buf );
     end;
 
     procedure kill_prev_word;
