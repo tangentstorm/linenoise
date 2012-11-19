@@ -26,16 +26,6 @@ interface uses ctypes, classes, sysutils, crt;
 
 implementation
 
-  { leaning on the c version during the pascal port... }
-
-  {$linklib c}
-  {$link linenoise.o}
-  procedure clrscr; cdecl; external name 'linenoiseClearScreen';
-  function raw_prompt( buf : pchar; len : csize_t; const pmt : pchar) : cint;
-    cdecl;
-    external name 'linenoiseRaw';
-
-
   function raw_prompt( const pmt : string; var buf : string ) : boolean;
     var plen, len, cur : integer; done : boolean; ch : char;
 
@@ -118,7 +108,7 @@ implementation
 	^X : ;
 	^Y : ;
 	^Z : ;
-	^[ : escapes; // emacs pascal goes nuts if I type ^[ :/
+	^[ : escapes;
 	^\ , ^], ^^ , ^_ : ; // field, group, record, unit separator
 	^? : backspace;
 	else begin
@@ -131,10 +121,9 @@ implementation
     if result then setlength( buf, len );
   end;
 
-{ -- pascal version begins -- }
 
 function term_supported : boolean;
-var un, term : string;
+  var un, term : string;
 begin
   result := true;
   term := getEnvironmentVariable( 'TERM' );
