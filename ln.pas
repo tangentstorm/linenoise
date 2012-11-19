@@ -43,5 +43,5 @@ implementation
   end;
 
 initialization
-  history.create;
+  history := stringlist.create;
 end.
