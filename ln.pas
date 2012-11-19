@@ -1,6 +1,6 @@
 {$mode objfpc}{$h+}
 unit ln;
-interface uses ctypes, classes;
+interface uses ctypes, classes, sysutils;
 
   type
     StringList	   = class ( TStringList )
@@ -15,7 +15,7 @@ interface uses ctypes, classes;
     on_complete	: completion_cbk;
     history	: StringList;
 
-  function prompt( const prompt : string; var input :  string ) : boolean;
+  function prompt( const prm : string; var input : string ) : boolean;
 
 implementation
 
@@ -24,14 +24,18 @@ implementation
   procedure clrscr; cdecl; external name 'linenoiseClearScreen';
   function linenoise( const prompt : pchar ) : pchar;  cdecl; external;
 
-  function prompt( const prm : string; var input :  string ) : string;
+  function prompt( const prm : string; var input : string ) : boolean;
+    var tmp : pchar;
   begin
-    input := linenoise( prm );
-    result := input <> nil;
+    tmp := linenoise( pchar( prm ));
+    result := tmp <> nil;
+    if result then input := ansistring( tmp )
+    else input := ''
   end;
 
   procedure StringList.load( path : string );
-  begin self.loadFromFile( path );
+  begin
+    if fileexists( path ) then self.loadFromFile( path );
   end;
 
   procedure StringList.save( path : string );
