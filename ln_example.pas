@@ -18,8 +18,10 @@ begin
   ln.on_complete := @completion;
   ln.history.load( 'history.txt' );  // load history at startup
   while ln.prompt( 'hello> ', line ) do begin
+    writeln;
     writeln( 'echo : ', line );
     ln.history.add( line );
     ln.history.save( 'history.txt' );
   end;
+  writeln;
 end.
