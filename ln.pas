@@ -14,6 +14,7 @@ interface uses ctypes, classes, sysutils, crt;
   var
     on_complete	: completion_cbk;
     history	: StringList;
+    hist_index	: integer = 0;
 
   const
     MAX_LINE_SIZE = 1024;
@@ -59,8 +60,17 @@ implementation
       end;
     end;
 
-    procedure hist_next; begin end;
-    procedure hist_prev; begin end;
+    procedure browse_history( new_index : integer );
+    begin
+      hist_index := new_index;
+      if hist_index < 0 then hist_index := 0;
+      if hist_index > history.count then  hist_index := history.count;
+      if hist_index in [ 0 .. history.count - 1 ] then begin
+	buf := history[ hist_index ];
+	len := length( buf );
+      end
+      else begin buf := ''; len := 0 end;
+    end;
 
     procedure kill_prev_word;
       var old, dif : integer;
@@ -84,6 +94,7 @@ implementation
 
   begin
     len := 0; cur := 1; plen := length( pmt );
+    browse_history( history.count );
     done := false; result := true; // optimism!
     repeat
       refresh; ch := readkey;
@@ -102,9 +113,9 @@ implementation
 	^K : begin len := cur - 1; setlength( buf, len ) end;
 	^L : crt.clrscr;
 	^M : accept;
-	^N : hist_next;
+	^N : browse_history( hist_index + 1 );
 	^O : ;
-	^P : hist_prev;
+	^P : browse_history( hist_index - 1 );
 	^Q : ;
 	^R : ;
 	^S : ;
