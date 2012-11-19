@@ -82,11 +82,6 @@ implementation
       len := length( buf );
     end;
 
-    procedure accept; inline;
-    begin
-      writeln; done := true;
-    end;
-
     procedure escapes;
     begin
     end;
@@ -102,16 +97,16 @@ implementation
 	^A : cur := 1;
 	^B : begin dec( cur ); if cur = 0 then cur := 1 end;
 	^C : begin result := false; done := true end;
-	^D : delete_char;
+	^D : if cur > 1 then delete_char else begin result := false; done := true end;
 	^E : cur := len + 1;
 	^F : begin inc( cur ); if cur > len then cur := len + 1 end;
 	^G : ;
 	^H : backspace;
 	^I : complete_line( buf );
-	^J : accept;
+	^J : done := true;
 	^K : begin len := cur - 1; setlength( buf, len ) end;
 	^L : crt.clrscr;
-	^M : accept;
+	^M : done := true;
 	^N : browse_history( hist_index + 1 );
 	^O : ;
 	^P : browse_history( hist_index - 1 );
