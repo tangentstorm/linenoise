@@ -1,6 +1,6 @@
 { example for ln.pas module }
 {$mode objfpc}{$h+}
-program example;
+program ln_example;
 uses ln;
 
   procedure completion( const buf : string; var comps : ln.Completions );
