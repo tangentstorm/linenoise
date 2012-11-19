@@ -63,7 +63,14 @@ implementation
     procedure hist_prev; begin end;
 
     procedure kill_prev_word;
+      var old, dif : integer;
     begin
+      old := cur;
+      while ( cur > 1 ) and ( buf[ cur - 1 ] <= ' ' ) do dec( cur );
+      while ( cur > 1 ) and ( buf[ cur - 1 ]  > ' ' ) do dec( cur );
+      dif := old - cur + 1;
+      delete( buf, cur, dif );
+      len := length( buf );
     end;
 
     procedure accept; inline;
