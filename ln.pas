@@ -68,6 +68,7 @@ implementation
       if hist_index in [ 0 .. history.count - 1 ] then buf := history[ hist_index ]
       else buf := '';
       len := length( buf );
+      if cur > len then cur := len + 1; //  maybe remember column for hopping past short lines?
     end;
 
     procedure kill_prev_word;
