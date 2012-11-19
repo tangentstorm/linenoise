@@ -20,8 +20,10 @@ begin
   while ln.prompt( 'hello> ', line ) do begin
     writeln;
     writeln( 'echo : ', line );
-    ln.history.add( line );
-    ln.history.save( 'history.txt' );
+    if line <> '' then begin
+      ln.history.add( line );
+      ln.history.save( 'history.txt' );
+    end
   end;
   writeln;
 end.
