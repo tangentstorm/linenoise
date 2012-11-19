@@ -127,7 +127,7 @@ implementation
 	^R : ;
 	^S : ;
 	^T : transpose;
-	^U : begin buf := ''; refresh end;
+	^U : begin delete( buf, 1, cur - 1); len := length( buf ); cur := 1 end;
 	^V : ;
 	^W : kill_prev_word;
 	^X : ;
