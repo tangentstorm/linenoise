@@ -122,7 +122,7 @@ static int isUnsupportedTerm(void) {
     return 0;
 }
 
-static void freeHistory(void) {
+void freeHistory(void) {
     if (history) {
         int j;
 
@@ -132,7 +132,7 @@ static void freeHistory(void) {
     }
 }
 
-static int enableRawMode(int fd) {
+int enableRawMode(int fd) {
     struct termios raw;
 
     if (!isatty(STDIN_FILENO)) goto fatal;
@@ -167,26 +167,26 @@ fatal:
     return -1;
 }
 
-static void disableRawMode(int fd) {
+void disableRawMode(int fd) {
     /* Don't even check the return value as it's too late. */
     if (rawmode && tcsetattr(fd,TCSAFLUSH,&orig_termios) != -1)
         rawmode = 0;
 }
 
 /* At exit we'll try to fix the terminal to the initial conditions. */
-static void linenoiseAtExit(void) {
+void linenoiseAtExit(void) {
     disableRawMode(STDIN_FILENO);
     freeHistory();
 }
 
-static int getColumns(void) {
+int getColumns(void) {
     struct winsize ws;
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1) return 80;
     return ws.ws_col;
 }
 
-static void refreshLine(int fd, const char *prompt, char *buf, size_t len, size_t pos, size_t cols) {
+void refreshLine(int fd, const char *prompt, char *buf, size_t len, size_t pos, size_t cols) {
     char seq[64];
     size_t plen = strlen(prompt);
 
@@ -213,12 +213,12 @@ static void refreshLine(int fd, const char *prompt, char *buf, size_t len, size_
     if (write(fd,seq,strlen(seq)) == -1) return;
 }
 
-static void beep() {
+void beep() {
     fprintf(stderr, "\x7");
     fflush(stderr);
 }
 
-static void freeCompletions(linenoiseCompletions *lc) {
+void freeCompletions(linenoiseCompletions *lc) {
     size_t i;
     for (i = 0; i < lc->len; i++)
         free(lc->cvec[i]);
@@ -226,7 +226,7 @@ static void freeCompletions(linenoiseCompletions *lc) {
         free(lc->cvec);
 }
 
-static int completeLine(int fd, const char *prompt, char *buf, size_t buflen, size_t *len, size_t *pos, size_t cols) {
+int completeLine(int fd, const char *prompt, char *buf, size_t buflen, size_t *len, size_t *pos, size_t cols) {
     linenoiseCompletions lc = { 0, NULL };
     int nread, nwritten;
     char c = 0;
@@ -287,7 +287,7 @@ void linenoiseClearScreen(void) {
     }
 }
 
-static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt) {
+int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt) {
     size_t plen = strlen(prompt);
     size_t pos = 0;
     size_t len = 0;
@@ -311,7 +311,7 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
 
         nread = read(fd,&c,1);
         if (nread <= 0) return len;
-
+
         /* Only autocomplete when the callback is set. It returns < 0 when
          * there was an error reading from fd. Otherwise it will return the
          * character that should be handled next. */
@@ -322,7 +322,7 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
             /* Read next character when 0 */
             if (c == 0) continue;
         }
-
+
         switch(c) {
         case 13:    /* enter */
             history_len--;
@@ -341,6 +341,7 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
                 refreshLine(fd,prompt,buf,len,pos,cols);
             }
             break;
+
         case 4:     /* ctrl-d, remove char at right of cursor */
             if (len > 1 && pos < (len-1)) {
                 memmove(buf+pos,buf+pos+1,len-pos);
@@ -362,7 +363,6 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
                 refreshLine(fd,prompt,buf,len,pos,cols);
             }
             break;
-
         case 2:     /* ctrl-b */
             goto left_arrow;
         case 6:     /* ctrl-f */
@@ -492,7 +492,7 @@ up_down_arrow:
     return len;
 }
 
-static int linenoiseRaw(char *buf, size_t buflen, const char *prompt) {
+int linenoiseRaw(char *buf, size_t buflen, const char *prompt) {
     int fd = STDIN_FILENO;
     int count;
 
@@ -629,4 +629,3 @@ int linenoiseHistoryLoad(char *filename) {
     fclose(fp);
     return 0;
 }
-
