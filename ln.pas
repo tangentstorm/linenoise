@@ -31,12 +31,22 @@ implementation
     var plen, len, cur : integer; done : boolean; ch : char;
 
     procedure refresh;
+      var ch : char; ofs : byte = 0; i : integer = 0;
     begin
       crt.gotoxy( 1, crt.wherey ); // left edge
       write( pmt );
-      write( buf );
+      for ch in buf do begin
+	inc( i );
+	if ( ch < ' ' ) and not ( ch = ^J ) then begin
+	  crt.textcolor( 2 );
+	  write( '^', chr( ord( '@' ) + ord( ch )));
+	  if i <= cur then inc( ofs );
+	  crt.textcolor( 7 );
+	end
+	else write( ch )
+      end;
       crt.clreol; // write( #27, '[0G', #27, '[', plen + cur , 'C' );
-      crt.gotoxy( plen + cur, crt.wherey );
+      crt.gotoxy( plen + cur + ofs, crt.wherey );
     end;
 
     procedure complete_line( var buf : string );
@@ -97,6 +107,7 @@ implementation
 
     procedure escapes;
     begin
+      insert( #27, buf, cur );
     end;
 
   begin
@@ -106,11 +117,12 @@ implementation
     repeat
       refresh; ch := readkey;
       case ch of
-	#0 : ;
+	#0 : escapes;
 	^A : cur := 1;
 	^B : begin dec( cur ); if cur = 0 then cur := 1 end;
 	^C : begin result := false; done := true end;
-	^D : if cur > 1 then delete_char else begin result := false; done := true end;
+	^D : if (len > 0) or (cur > 1) then delete_char
+	     else begin result := false; done := true end;
 	^E : cur := len + 1;
 	^F : begin inc( cur ); if cur > len then cur := len + 1 end;
 	^G : ;
