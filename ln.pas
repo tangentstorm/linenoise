@@ -82,6 +82,19 @@ implementation
       len := length( buf );
     end;
 
+    procedure transpose;
+      var ch : char;
+    begin
+      if cur > 1 then begin
+	if cur >= len then cur := len;
+	ch := buf[ cur - 1 ];
+	buf[ cur - 1 ] := buf[ cur ];
+	buf[ cur ] := ch;
+	inc( cur );
+	if cur >= len then cur := len + 1;
+      end;
+    end;
+
     procedure escapes;
     begin
     end;
@@ -113,7 +126,7 @@ implementation
 	^Q : ;
 	^R : ;
 	^S : ;
-	^T : ;
+	^T : transpose;
 	^U : begin buf := ''; refresh end;
 	^V : ;
 	^W : kill_prev_word;
