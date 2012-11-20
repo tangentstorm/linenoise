@@ -31,12 +31,12 @@ implementation
     var plen, len, cur : integer; done : boolean; ch : char;
 
     procedure refresh;
-      var ch : char; ofs : byte = 0; i : integer = 0;
+      var ch: char; ofs : byte = 0; i : integer = 0;
     begin
       crt.gotoxy( 1, crt.wherey ); // left edge
       write( pmt );
       for ch in buf do begin
-	inc( i );
+      inc( i );
 	if ( ch < ' ' ) and not ( ch = ^J ) then begin
 	  crt.textcolor( 2 );
 	  write( '^', chr( ord( '@' ) + ord( ch )));
@@ -48,12 +48,7 @@ implementation
       crt.clreol; // write( #27, '[0G', #27, '[', plen + cur , 'C' );
       crt.gotoxy( plen + cur + ofs, crt.wherey );
     end;
-
-    procedure complete_line( var buf : string );
-    begin
-      //  todo
-    end;
-
+
     procedure backspace;
     begin
       if ( cur > 1 ) and ( len > 0 ) then begin
@@ -70,28 +65,6 @@ implementation
       end;
     end;
 
-    procedure browse_history( new_index : integer );
-    begin
-      hist_index := new_index;
-      if hist_index < 0 then hist_index := 0;
-      if hist_index > history.count then  hist_index := history.count;
-      if hist_index in [ 0 .. history.count - 1 ] then buf := history[ hist_index ]
-      else buf := '';
-      len := length( buf );
-      if cur > len then cur := len + 1; //  maybe remember column for hopping past short lines?
-    end;
-
-    procedure kill_prev_word;
-      var old, dif : integer;
-    begin
-      old := cur;
-      while ( cur > 1 ) and ( buf[ cur - 1 ] <= ' ' ) do dec( cur );
-      while ( cur > 1 ) and ( buf[ cur - 1 ]  > ' ' ) do dec( cur );
-      dif := old - cur + 1;
-      delete( buf, cur, dif );
-      len := length( buf );
-    end;
-
     procedure transpose;
       var ch : char;
     begin
@@ -105,19 +78,54 @@ implementation
       end;
     end;
 
+    procedure kill_prev_word;
+      var old, dif : integer;
+    begin
+      old := cur;
+      while ( cur > 1 ) and ( buf[ cur - 1 ] <= ' ' ) do dec( cur );
+      while ( cur > 1 ) and ( buf[ cur - 1 ]  > ' ' ) do dec( cur );
+      dif := old - cur + 1;
+      delete( buf, cur, dif );
+      len := length( buf );
+    end;
+
+    procedure complete_line( var buf : string );
+    begin
+      //  todo
+    end;
+
+    procedure browse_history( new_index : integer );
+    begin
+
+      // clamp:
+      hist_index := new_index;
+      if hist_index < 0 then hist_index := 0;
+      if hist_index > history.count then hist_index := history.count;
+
+      // special case for new input at end of list:
+      if hist_index in [ 0 .. history.count - 1 ]
+	then buf := history[ hist_index ]
+        else buf := '';
+      len := length( buf );
+
+      // cursor tracking:
+      //  maybe remember column for hopping past short lines?
+      if cur > len then cur := len + 1;
+    end;
+
+
     procedure escapes;
     begin
       insert( #27, buf, cur );
     end;
-
-  begin
+
+  begin // raw_prompt
     len := 0; cur := 1; plen := length( pmt );
     browse_history( history.count );
     done := false; result := true; // optimism!
     repeat
       refresh; ch := readkey;
       case ch of
-	#0 : escapes;
 	^A : cur := 1;
 	^B : begin dec( cur ); if cur = 0 then cur := 1 end;
 	^C : begin result := false; done := true end;
@@ -139,12 +147,15 @@ implementation
 	^R : ;
 	^S : ;
 	^T : transpose;
-	^U : begin delete( buf, 1, cur - 1); len := length( buf ); cur := 1 end;
+	^U : begin delete( buf, 1, cur - 1); len := length( buf ); cur := 1
+	     end;
 	^V : ;
 	^W : kill_prev_word;
 	^X : ;
 	^Y : ;
 	^Z : ;
+      { special characters }
+	^@ : escapes; // #0 ( null )
 	^[ : escapes;
 	^\ , ^], ^^ , ^_ : ; // field, group, record, unit separator
 	^? : backspace;
