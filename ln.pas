@@ -103,9 +103,9 @@ implementation
       if hist_index > history.count then hist_index := history.count;
 
       // special case for new input at end of list:
-      if hist_index in [ 0 .. history.count - 1 ]
-	then buf := history[ hist_index ]
-        else buf := '';
+      if hist_index = history.count
+	then buf := ''
+        else buf := history[ hist_index ];
       len := length( buf );
 
       // cursor tracking:
