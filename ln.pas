@@ -1,6 +1,6 @@
 {$i xpc.inc}
 unit ln;
-interface uses ctypes, classes, sysutils, crt;
+interface uses classes, sysutils, crt;
 
   type
     StringList	   = class ( TStringList )
@@ -124,7 +124,7 @@ implementation
     browse_history( history.count );
     done := false; result := true; // optimism!
     repeat
-      refresh; ch := readkey;
+      refresh; ch := crt.readkey;
       case ch of
 	^A : cur := 1;
 	^B : begin dec( cur ); if cur = 0 then cur := 1 end;
@@ -180,7 +180,6 @@ end;
 
 
 function prompt( const pmt : string; var buf : string ) : boolean;
-  var len : cint;
 begin
   if term_supported and not force_plain then //  and is_tty( stdin )
     result := raw_prompt( pmt, buf )
