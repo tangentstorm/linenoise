@@ -15,14 +15,13 @@ uses ln;
 var
   line : string = '';
 begin
-  ln.on_complete := @completion;
-  ln.history.load( 'history.txt' );  // load history at startup
-  while ln.prompt( 'hello> ', line ) do begin
+  ln.ed.on_complete := @completion;
+  ln.ed.history.load( 'history.txt' );  // load history at startup
+  while ln.ed.input( 'hello> ', line ) do begin
     writeln;
     writeln( 'echo : ', line );
     if line <> '' then begin
-      ln.history.add( line );
-      ln.history.save( 'history.txt' );
+      ln.ed.history.save( 'history.txt' );
     end
   end;
   writeln;
