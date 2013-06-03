@@ -1,20 +1,19 @@
-{$i xpc.inc}
 unit ln;
 interface uses classes, sysutils, crt;
 
   type
-    StringList	   = class ( TStringList )
-      procedure load( path : string );
-      procedure save( path : string );
+    StringList	   = object ( TStringList )
+{      procedure load( path : string );
+      procedure save( path : string );}
     end;
     HistoryList	   = StringList;
     Completions	   = StringList;
     completion_cbk = procedure( const buf: string; var comps : Completions );
 
-    LineEditor	   = class
+    LineEditor	   = object
       history      : StringList;
       on_complete  : completion_cbk;
-      constructor create;
+{      constructor create;
       function flush: string;
       function input( const pmt : string; var res : string ) : boolean;
       procedure refresh;
@@ -25,18 +24,18 @@ interface uses classes, sysutils, crt;
       procedure complete_line( var buf : string );
       procedure browse_history( new_index : integer );
       procedure reset;
-      procedure step;
-    private
-      _done      : boolean;
+      procedure step;}
+{    private}
+      done      : boolean;
       hist_index : integer;
       plen, len, cur : integer;
       keep : boolean;
       pmt, buf : string;
-      procedure escapes;
-      procedure set_prompt( const s :  string );
-    public
-      property prompt : string read pmt write set_prompt;
-      property done : boolean read _done;
+{      procedure escapes;
+      procedure set_prompt( const s :  string );}
+{    public}
+{      property prompt : string read pmt write set_prompt;
+      property done : boolean read _done;}
     end;
 
   const
@@ -50,30 +49,31 @@ interface uses classes, sysutils, crt;
 
   function prompt( const msg : string; var buf : string ) : boolean;
 
-
 implementation
 
-  constructor LineEditor.Create;
+  procedure Create(self	: LineEditor);
   begin
     history := StringList.create;
     hist_index := 0;
     self.reset;
   end;
 
-  procedure LineEditor.set_prompt( const s : string );
+  procedure set_prompt( self : LineEditor;  const s : string );
   begin
     self.pmt := s;
     self.plen := length(s);
   end;
 
-  procedure LineEditor.refresh;
-    var ch: char; ofs : byte = 0; i : integer = 0;
+  procedure refresh( self : LineEditor );
+    var ch : char; ofs : byte = 0; i : integer = 0;
   begin
     crt.gotoxy( 1, crt.wherey ); // left edge
     write( pmt );
-    for ch in buf do begin
+    i := 0;
+    while i < length(buf) do
       inc( i );
-      if ( ch < ' ' ) and not ( ch = ^J ) then begin
+      ch := buf[ i ];
+      if ( ch < ' ' ) and not ( ch = {^J}#10 ) then begin
 	crt.textcolor( 2 );
 	write( '^', chr( ord( '@' ) + ord( ch )));
 	if i <= cur then inc( ofs );
@@ -84,8 +84,8 @@ implementation
     crt.clreol; // write( #27, '[0G', #27, '[', plen + cur , 'C' );
     crt.gotoxy( plen + cur + ofs, crt.wherey );
   end;
-
-  procedure LineEditor.backspace;
+
+  procedure backspace( self : LineEditor );
   begin
     if ( cur > 1 ) and ( len > 0 ) then begin
       dec( cur ); dec( len );
@@ -93,7 +93,7 @@ implementation
     end;
   end;
 
-  procedure LineEditor.delete_char; inline;
+  procedure delete_char( self :  LineEditor ); inline;
   begin
     if cur <= len then begin
       dec( len );
@@ -101,7 +101,7 @@ implementation
     end;
   end;
 
-  procedure LineEditor.transpose;
+  procedure transpose( self : LineEditor ) ;
     var ch : char;
   begin
     if cur > 1 then begin
@@ -114,7 +114,7 @@ implementation
     end;
   end;
 
-  procedure LineEditor.kill_prev_word;
+  procedure LineEditor.kill_prev_word( self : LineEditor ) ;
     var old, dif : integer;
   begin
     old := cur;
@@ -124,12 +124,12 @@ implementation
     delete( buf, cur, dif );
     len := length( buf );
   end;
-
+
   procedure LineEditor.complete_line( var buf : string );
   begin
-    //  todo
+    // todo
   end;
-
+
   procedure LineEditor.browse_history( new_index : integer );
   begin
 
@@ -145,17 +145,17 @@ implementation
     len := length( buf );
 
     // cursor tracking:
-    //  maybe remember column for hopping past short lines?
+    // maybe remember column for hopping past short lines?
     if cur > len then cur := len + 1;
   end;
-
 
-  procedure LineEditor.escapes;
+
+  procedure LineEditor.escapes( self : LineEditor ) ;
   begin
     insert( #27, buf, cur );
   end;
-
-  procedure LineEditor.step;
+
+  procedure LineEditor.step( self : LineEditor ) ;
     var ch : char;
   begin
     refresh; ch := crt.readkey;
@@ -201,14 +201,14 @@ implementation
     end
   end; { step }
 
-  procedure LineEditor.reset;
+  procedure LineEditor.reset( self : LineEditor ) ;
   begin
     len := 0; cur := 1; plen := length( pmt );
     _done := false;
     browse_history( history.count );
   end;
 
-  function LineEditor.input( const pmt : string; var res : string ) : boolean;
+  function LineEditor.input( self : LineEditor; const pmt : string; var res : string ) : boolean;
   begin
     self.pmt := pmt;
     self.buf := res;
@@ -221,7 +221,7 @@ implementation
   end; { LineEditor.prompt }
 
 
-  function LineEditor.flush : string;
+  function LineEditor.flush( self : LineEditor ) : string;
   begin
     result := self.buf;
     if result <> '' then history.add( result );
@@ -229,9 +229,8 @@ implementation
     reset;
   end;
 
-
 
-function term_supported : boolean;
+function term_supported( self : LineEditor ) : boolean;
   var un, term : string;
 begin
   result := true;
@@ -240,7 +239,7 @@ begin
 end;
 
 
-function prompt( const msg : string; var buf : string ) : boolean;
+function prompt(  self : LineEditor; const msg : string; var buf : string ) : boolean;
 begin
   if term_supported and not force_plain then //  and is_tty( stdin )
   begin
@@ -253,20 +252,18 @@ begin
   end
 end;
 
-
 { -- TStringList wrappers  -- }
 
-procedure StringList.load( path : string ); inline;
+  procedure StringList.load( self : LineEditor; path : string ); inline;
 begin
   if fileExists( path ) then self.LoadFromFile( path );
 end;
 
-procedure StringList.save( path : string ); inline;
+  procedure StringList.save( self : LineEditor; path : string ); inline;
 begin
   self.SaveToFile( path );
 end;
 
-
 initialization
   ed := LineEditor.create;
 end.
